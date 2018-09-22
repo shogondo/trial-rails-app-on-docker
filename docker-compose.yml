@@ -1,0 +1,29 @@
+version: '3'
+services:
+  railsapp:
+    command: bundle exec rails s
+    depends_on:
+      - mysql
+    environment:
+      BUNDLE_APP_CONFIG: /opt/.bundle
+      HOME: /opt
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    image: ruby:2.5.1
+    links:
+      - mysql
+    ports:
+      - 3000:3000
+    volumes:
+      - ./:/opt
+    working_dir: /opt
+  mysql:
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+    image: mysql
+    ports:
+      - 3306:3306
+    volumes:
+      - ./docker/mysql:/etc/mysql/conf.d
+      - trial-mysql-data:/var/lib/mysql
+volumes:
+  trial-mysql-data:
