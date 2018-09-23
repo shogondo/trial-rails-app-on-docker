@@ -13,6 +13,7 @@ services:
       - mysql
     ports:
       - 3000:3000
+    user: ${UID}:${GID}
     volumes:
       - ./:/opt
     working_dir: /opt
