@@ -1,0 +1,5 @@
+FROM mysql
+
+ARG MYSQL_PASSWORD
+ENV MYSQL_ROOT_PASSWORD $MYSQL_PASSWORD
+ADD ./docker/mysql /etc/mysql/conf.d

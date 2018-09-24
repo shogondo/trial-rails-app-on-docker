@@ -5,8 +5,8 @@ services:
     depends_on:
       - mysql
     environment:
-      BUNDLE_APP_CONFIG: /opt/.bundle
-      HOME: /opt
+      BUNDLE_APP_CONFIG: /app/.bundle
+      HOME: /app
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     image: ruby:2.5.1
     links:
@@ -15,8 +15,8 @@ services:
       - 3000:3000
     user: ${UID}:${GID}
     volumes:
-      - ./:/opt
-    working_dir: /opt
+      - ./:/app
+    working_dir: /app
   mysql:
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
