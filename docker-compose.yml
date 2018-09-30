@@ -15,7 +15,7 @@ services:
       - 3000:3000
     user: ${UID}:${GID}
     volumes:
-      - ./:/app
+      - ./:/app:cached
     working_dir: /app
   mysql:
     environment:
@@ -24,7 +24,7 @@ services:
     ports:
       - 3306:3306
     volumes:
-      - ./docker/mysql:/etc/mysql/conf.d
+      - ./docker/mysql:/etc/mysql/conf.d:cached
       - trial-mysql-data:/var/lib/mysql
 volumes:
   trial-mysql-data:
