@@ -1,24 +1,22 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+## Setup
 
-Things you may want to cover:
+```:shell
+echo UID=`id -u` > .env
+echo GID=`id -g` >> .env
+echo MYSQL_PASSWORD=xxxx >> .env
+docker-compose run --rm railsapp bundle install --path vendor/bundle
+docker-compose run --rm railsapp bundle exec rails db:create
+docker-compose run --rm railsapp bundle exec rails db:migrate
+docker-compose up -d
+```
 
-* Ruby version
+## Access
 
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+```:shell
+curl http://localhost:3000/samples
+curl -X POST -H 'Content-Type: application/json' -d '{ "title": "Hello World" }' http://localhost:3000/samples
+curl http://localhost:3000/samples/1
+curl -X DELETE http://localhost:3000/samples/1
+```
