@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Setup trail rails
+
+Resources:
+  CustomResourceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonSSMFullAccess
+      Path: /
+      RoleName: !Sub ${AWS::StackName}-custom-resource-role
+  
+  PasswordGeneratorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt CustomResourceRole.Arn
+      Runtime: nodejs6.10
+      Code:
+        ZipFile: !Sub |
+            const AWS = require('aws-sdk');
+            const { send, SUCCESS, ERROR } = require('cfn-response');
+            exports.handler = (event, context, callback) => {
+              const client = new AWS.SSM();
+              switch(event.RequestType) {
+                case 'Create': {
+                  const password = [Math.random(), Math.random()]
+                    .map((o) => o.toString(36).substring(2, 15))
+                    .join('');
+                  const params = {
+                    Name: '${AWS::StackName}-mysql-password',
+                    Type: 'SecureString',
+                    Value: password
+                  };
+                  client.putParameter(params, (error, result) => {
+                    if (error) {
+                      console.error('Failed to put parameter.', error);
+                      return send(event, context, ERROR, error);
+                    }
+                    send(event, context, SUCCESS, result);
+                  });
+                  break;
+                }
+                case 'Update': {
+                  send(event, context, SUCCESS);
+                  break;
+                }
+                case 'Delete': {
+                  const params = {
+                    Name: '${AWS::StackName}-mysql-password'
+                  };
+                  client.deleteParameter(params, (error, result) => {
+                    if (error) {
+                      console.error('Failed to delete parameter.', error);
+                      return send(event, context, ERROR, error);
+                    }
+                    send(event, context, SUCCESS, result);
+                  });
+                  break;
+                }
+              }
+            };
+
+  PasswordGenerator:
+    Type: Custom::PasswordGenerator
+    Properties:
+      ServiceToken: !GetAtt PasswordGeneratorFunction.Arn
+
+  Cluster:
+    Type: AWS::ECS::Cluster 
+    Properties:
+      ClusterName: !Sub ${AWS::StackName}-cluster
+
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref Cluster
+      DesiredCount: 1
+      ServiceName: !Sub ${AWS::StackName}-service
+      
